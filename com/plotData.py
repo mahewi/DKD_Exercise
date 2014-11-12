@@ -79,13 +79,8 @@ def parallelFeatures(matrix):
 # The correlation coeffecients are saved to the 'correlations' variable (matrix).
 # The strongly correlating features (between [0,7..1 or -0,7..-1]) are printed also    
 def calculateCorrelations(matrix):
-    featureMatrix = []
+    featureMatrix = initializeFeatureMatrix()
     interestingCorrelations = []
-    for i in range(0, 13):
-        features = []
-        for j in range(0, len(y)):
-            features.append(matrix[j][i])
-        featureMatrix.append(features)
 
     for k in range(0, len(featureMatrix)):
         for z in range(k + 1, len(featureMatrix)):
@@ -124,21 +119,52 @@ def visualizeAsScatterPlot(matrix):
 
 # Task 6: Calculate Covariance matrix -> calculate eigenvalues and eigenvectors from square covariance matrix
 def calculateConvarianceAndEigen(matrix):
-    tempMatrix = []
-    for i in range(0, 13):
-        featureData = []
-        for j in range (0, len(y)):
-            featureData.append(matrix[j,i])
-            tempMatrix.append(featureData)
-        # featureCovariance = np.cov(featureData) # From each feature -- 1-D array
-        # covarianceMatrix =  np.cov(tempMatrix) # From each feature matrix -- 2-D array
-    bigCovarianceMatrix = np.cov(tempMatrix) # From the whole data set matrix -- 2-D array
+    featureMatrix = initializeFeatureMatrix()
+    # featureCovariance = np.cov(featureData) # From each feature -- 1-D array
+    # covarianceMatrix =  np.cov(tempMatrix) # From each feature matrix -- 2-D array
+    bigCovarianceMatrix = np.cov(featureMatrix) # From the whole data set matrix -- 2-D array
     eigVal, eigVec = np.linalg.eig(bigCovarianceMatrix)
     print
     print 'Eigenvalues: ' + str(eigVal)
     print
     print 'Eigenvectors: ' + str(eigVec)
     
+    return eigVal, eigVec
+    
+
+# Task 7: Calculate PCA and generate scatter plot for first two principal components
+def calculatePrincipalProjection(matrix):
+    featureMatrix = initializeFeatureMatrix()
+    eigVal, eigVec = calculateConvarianceAndEigen(matrix)
+
+    eigPairs = [(np.abs(eigVal[i]), eigVec[:,i]) for i in range(len(eigVal))]
+    eigPairs.sort(reverse=True)
+    '''for i in eigPairs:
+        print (i[0])'''
+    
+    dimMatrix = np.hstack(eigPairs[0][1])
+    pcaResult = dimMatrix.T.dot(featureMatrix)
+    
+    #pcaResult = matplotlib.mlab.PCA(featureMatrix.T)
+    
+    pp.scatter(pcaResult[0:89],pcaResult[0:89], c='red', label='Set 1')
+    pp.scatter(pcaResult[90:178], pcaResult[90:178], c='blue', label='Set 2')
+
+    pp.legend()
+    pp.show()
+       
+
+# Initialize matrix containing arrays of features    
+def initializeFeatureMatrix():
+    tempMatrix = []
+    for i in range(0, 13):
+        featureMatrix = []
+        for j in range (0, len(y)):
+            featureMatrix.append(y[j,i])
+        tempMatrix.append(featureMatrix)
+    npArr = np.array(tempMatrix)
+    return npArr
+
 
 # The primary method calls are located here.                    
 # defaultHistogram(y) # Task 1
@@ -147,5 +173,5 @@ def calculateConvarianceAndEigen(matrix):
 # calculateCorrelations(y) # Task 4
 # visualizeAsScatterPlot(y) # Task 5
 # calculateConvarianceAndEigen(y) # Task 6
-
+# calculatePrincipalProjection(y) # Task 7
 
