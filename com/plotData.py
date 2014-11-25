@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib
 from matplotlib import pyplot as pp
 import os
 
@@ -53,8 +54,9 @@ def visualizeByClasses(array, matrix):
         pp.title('Feature ' + `i + 1` + ': ' + featureLabels[i])
         pp.ylabel('Count')
         pp.xlabel('Value')
-        pp.hist([hist1, hist2, hist3], 15, color=['#800020', '#F7E7CE', '#673147'], label=['Class1', 'Class2', 'Class3'],
-                 normed=1, alpha=0.8)
+        pp.hist(hist1, 15, color="r", label="Class1", alpha=0.8, normed=1)
+        pp.hist(hist2, 15, color="b", label="Class2", alpha=0.8, normed=1)
+        pp.hist(hist3, 15, color="g", label="Class3", alpha=0.8, normed=1)
         pp.legend()
         pp.show()
         
@@ -63,15 +65,24 @@ def visualizeByClasses(array, matrix):
 # One of the features: 'Proline', has/maps to significantly larger values than the other features. 
 # Therefore it dominates the plot over other features       
 def parallelFeatures(matrix):
-    for i in range(0, 13):
-        plot = []
-        for j in range (0, len(y)):
-            plot.append(matrix[j,i])
+    red_patch = matplotlib.patches.Patch(color='r', label='Class1')
+    green_patch = matplotlib.patches.Patch(color='g', label='Class2')
+    blue_patch = matplotlib.patches.Patch(color='b', label='Class3')
+    colors = {
+             1: 'r',
+             2: 'g',
+             3: 'b'
+             }
+    for i in range(0, len(y)):
+        sample = []
+        for j in range (0, 13):
+            sample.append(matrix[i,j])
         pp.grid(True)
         pp.ylabel('Value')
         pp.xlabel('Count')
-        pp.plot(plot, color='#800020', alpha=0.8)
+        pp.plot(sample, color=colors.get(x[i]), alpha=0.8)
     pp.title('Parallel plot of features')
+    pp.legend(handles=[red_patch,green_patch,blue_patch])
     pp.show()
     
 
