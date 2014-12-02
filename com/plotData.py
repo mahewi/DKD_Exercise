@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib
 from matplotlib import pyplot as pp
 import os
+from sklearn.preprocessing.data import StandardScaler
 
 
 if __name__ == '__main__':
@@ -158,8 +159,8 @@ def calculatePrincipalProjection(matrix):
     
     #pcaResult = matplotlib.mlab.PCA(featureMatrix.T)
     
-    pp.scatter(pcaResult[0:89],pcaResult[0:89], c='red', label='Set 1')
-    pp.scatter(pcaResult[90:178], pcaResult[90:178], c='blue', label='Set 2')
+    pp.scatter(pcaResult[0:89],pcaResult[89:178], c='red', label='Set 1')
+    pp.scatter(pcaResult[0:89], pcaResult[89:178], c='blue', label='Set 2')
 
     pp.legend()
     pp.show()
