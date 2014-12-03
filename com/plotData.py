@@ -119,7 +119,6 @@ def visualizeAsScatterPlot(matrix):
         second = strongCorrelations[i + 1]
         i = i + 2
         firstFeatureData = matrix[:,first]
-        print firstFeatureData
         secondFeatureData = matrix[:, second]
         
         pp.title('Scatter plot of features: ' + featureLabels[first] + ' & ' + featureLabels[second])
