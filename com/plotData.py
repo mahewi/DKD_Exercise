@@ -2,8 +2,6 @@ import numpy as np
 import matplotlib
 from matplotlib import pyplot as pp
 import os
-from sklearn.preprocessing.data import StandardScaler
-
 
 if __name__ == '__main__':
     pass
@@ -88,12 +86,12 @@ def parallelFeatures(matrix):
     
 
 # Task 4: Calculate the correlation coefficients.
-# The correlation coeffecients are saved to the 'correlations' variable (matrix).
+# The correlation coefficients are saved to the 'correlations' variable (matrix).
 # The strongly correlating features (between [0,7..1 or -0,7..-1]) are printed also    
 def calculateCorrelations(matrix):
     featureMatrix = initializeFeatureMatrix()
     interestingCorrelations = []
-
+    
     for k in range(0, len(featureMatrix)):
         for z in range(k + 1, len(featureMatrix)):
             correlations = np.corrcoef(featureMatrix[k], featureMatrix[z])
@@ -121,6 +119,7 @@ def visualizeAsScatterPlot(matrix):
         second = strongCorrelations[i + 1]
         i = i + 2
         firstFeatureData = matrix[:,first]
+        print firstFeatureData
         secondFeatureData = matrix[:, second]
         
         pp.title('Scatter plot of features: ' + featureLabels[first] + ' & ' + featureLabels[second])
