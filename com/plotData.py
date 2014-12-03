@@ -131,9 +131,7 @@ def visualizeAsScatterPlot(matrix):
 # Task 6: Calculate Covariance matrix -> calculate eigenvalues and eigenvectors from square covariance matrix
 def calculateConvarianceAndEigen(matrix):
     featureMatrix = initializeFeatureMatrix()
-    # featureCovariance = np.cov(featureData) # From each feature -- 1-D array
-    # covarianceMatrix =  np.cov(tempMatrix) # From each feature matrix -- 2-D array
-    bigCovarianceMatrix = np.cov(featureMatrix) # From the whole data set matrix -- 2-D array
+    bigCovarianceMatrix = np.cov(featureMatrix)
     eigVal, eigVec = np.linalg.eig(bigCovarianceMatrix)
     print
     print 'Eigenvalues: ' + str(eigVal)
@@ -156,10 +154,8 @@ def calculatePrincipalProjection(matrix):
     dimMatrix = np.hstack(eigPairs[0][1])
     pcaResult = dimMatrix.T.dot(featureMatrix)
     
-    #pcaResult = matplotlib.mlab.PCA(featureMatrix.T)
-    
-    pp.scatter(pcaResult[0:89],pcaResult[89:178], c='red', label='Set 1')
-    pp.scatter(pcaResult[0:89], pcaResult[89:178], c='blue', label='Set 2')
+    pp.scatter(pcaResult[0:44],pcaResult[44:88], c='red', label='Set 1')
+    pp.scatter(pcaResult[88:133], pcaResult[133:178], c='blue', label='Set 2')
 
     pp.legend()
     pp.show()
