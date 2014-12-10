@@ -27,14 +27,14 @@ def linearRegression(matrix):
     df = pd.DataFrame(matrix,columns=labels)
     y, X = dmatrices(generateLabels(), df, return_type='matrix')
     y = np.ravel(y)
-    errorCount =  inferErrors(X, y)
+    errorCount =  inferErrors(X, y, X, y)
     print 'Errors in whole data: ' + str(errorCount)
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=np.random)
-    trainErrorCount = inferErrors(X_train, y_train)
+    trainErrorCount = inferErrors(X_train, y_train, X_train, y_train)
     print 'Errors in randomized training data (3/4): ' + str(trainErrorCount)
     
-    testErrorCount = inferErrors(X_test, y_test)
+    testErrorCount = inferErrors(X_train, y_train, X_test, y_test)
     print 'Errors in randomized test data (1/4): ' + str(testErrorCount)
     
     stratifiedShuffleSplit = SSS(y,10,test_size=0.25,random_state=np.random)
@@ -45,28 +45,31 @@ def linearRegression(matrix):
         i = i+1
         X_2train, X_2test = X[train_index],X[test_index]
         y_2train,y_2test = y[train_index],y[test_index]
-        numOfErrorsTrain = inferErrors(X_2train, y_2train)
+        numOfErrorsTrain = inferErrors(X_2train, y_2train, X_2train, y_2train)
         numOfTrainErrors.append(numOfErrorsTrain)        
         
-        numOfErrorsTest = inferErrors(X_2test, y_2test)
+        numOfErrorsTest = inferErrors(X_2train, y_2train, X_2test, y_2test)
         numOfTestErrors.append(numOfErrorsTest)
+    
+    numOfTrainErrors = np.array(numOfTrainErrors)
+    numOfTestErrors = np.array(numOfTestErrors)
     
     print
     print 'Errors in training data sets (10-fold)'
     for i in range(0, len(numOfTrainErrors)):
         print 'Set ' + str(i + 1) + ': ' + str(numOfTrainErrors[i])
     
+    print 
+    print 'Std deviation of train data: ' + str(numOfTrainErrors.std())
+    print 'Mean of training data: ' + str(numOfTrainErrors.mean())   
+    
     print
     print 'Errors in test data sets (10-fold)'
     for i in range(0, len(numOfTestErrors)):
         print 'Set ' + str(i + 1) + ': ' + str(numOfTestErrors[i])
          
-    numOfTrainErrors = np.array(numOfTrainErrors)
-    numOfTestErrors = np.array(numOfTestErrors)
     print
-    print 'Std deviation of train data: ' + str(numOfTrainErrors.std())
-    print 'Std deviation of test data: ' + str(numOfTestErrors.std())
-    print 'Mean of training data: ' + str(numOfTrainErrors.mean())    
+    print 'Std deviation of test data: ' + str(numOfTestErrors.std())     
     print 'Mean of test data: ' +str(numOfTestErrors.mean())
     
     createBoxPlot(numOfTrainErrors, numOfTestErrors)
@@ -76,9 +79,10 @@ def calculateErrorCount(clazz,predictedValues):
     return len(filter(None,[predictedValuese if clazze != predictedValuese else '' for clazze, predictedValuese in zip(clazz,predictedValues)]))
  
 
-def inferErrors(xData, yData):
+
+def inferErrors(xTrain, yTrain, xData, yData):
     regressionModel = LogisticRegression()
-    regressionModel = regressionModel.fit(xData,yData);
+    regressionModel = regressionModel.fit(xTrain,yTrain);
     predictedY = regressionModel.predict(xData)
     return calculateErrorCount(yData, predictedY)
 
