@@ -2,13 +2,16 @@ import numpy as np
 import pandas as pd
 import os
 import scipy.spatial.distance as ssd
+import collections
+from random import randint
 from matplotlib import pyplot as pp
+from sklearn.cluster import KMeans
 from sklearn.cross_validation import train_test_split
 from sklearn.linear_model import LogisticRegression
 from patsy.highlevel import dmatrices
 from sklearn.cross_validation import StratifiedShuffleSplit as SSS
 from sklearn import linear_model
-import plotData
+from sklearn.cluster.k_means_ import k_means
     
 if __name__ == '__main__':
     pass
@@ -215,12 +218,22 @@ def evaluate(result):
 def NNC():
     """ k-nearest neighbors classifier """
 
-    data_tests = [1,2] 
     xTrain, xTest, yTrain, yTest = train_test_split(x, y, test_size=0.5)
-    calcTenFoldError()
-    
-    
-def calcTenFoldError():
+    foo(yTest)
+    #calcTenFoldError()
+    #calcNNError(xTrain,xTest,yTrain,len(xTrain))
+    plotKTrainAndTestError(xTrain,xTest,yTrain)
+
+def foo(yTest):
+    return
+
+def plotKTrainAndTestError(xTrain,xTest,yTrain):
+    for k in range(1,30):
+        fullresult = calcNNError(xTrain,xTest,yTrain,k+1)
+    pp.plot(fullresult)
+    pp.show()
+
+def calcTenFoldError(xTrain,xTest,yTrain):
     
     stratifiedShuffleSplit = SSS(y,10,test_size=0.25,random_state=np.random)
     for trainIdx, testIdx in stratifiedShuffleSplit:
@@ -232,12 +245,14 @@ def calcTenFoldError():
         #Test errors
         print 'Test errors'
         calcNNError(xTest, xTrain, yTest, len(xTest))
+        break
      
 def calcNNError(xTrain,xTest,yTrain,count):
+    fullResult = []
     correct = 0
     false = 0
+    results = []
     for i in range(1,count):
-        results = []
         pred_class = knn(i, xTrain, xTest, yTrain, 1)
         eval_result = evaluate(pred_class-yTrain[i])
         results.append(eval_result[0])
@@ -245,13 +260,53 @@ def calcNNError(xTrain,xTest,yTrain,count):
 
         correct += results[0]
         false += results[1]
-        results = []
-    print false
-    print correct
+        fullResult.append(results)
+        results = [] 
     print str(float(false)/float(correct+false) * 100.0) + '%'
+    return fullResult
+
+def tenTimesKMeansCluster():
+    lastCentroids = []
+    for i in range(10):
+        centroids, labels = KMeansClustering(randint(1,100))
+        if lastCentroids != []:
+            print compareCentroids(centroids,lastCentroids)
+        lastCentroids = centroids
+
+def compareCentroids(cents, lastCents):
+    for k in range(len(cents)):
+        if collections.Counter(cents[k]) == collections.Counter(lastCents[k]):
+            continue
+        else:
+            return False
+    return True
+    
+def KMeansClustering(numOfInit):
+    km = KMeans(n_clusters = 3, n_init = numOfInit)
+    km.fit(x)
+    centroids = km.cluster_centers_
+    labels = km.labels_
+    return centroids, labels
+
+def calcCentroidsAndClusterLabels():
+    centroids, labels = KMeansClustering(10)
+    print 'Centroids'
+    print centroids
+    labelCounts = [0,0,0]
+    for i in range(len(labels)):
+        labelCounts[labels[i]] += 1
+    clusterLabelIndex = np.argmax(labelCounts)
+    classificationError = 0
+    for k in range(len(labelCounts)):
+        if k != clusterLabelIndex:
+            classificationError += labelCounts[k]
+    print '"Classification errors"'
+    print classificationError
     
     
         
     
-NNC()
+#NNC()
+calcCentroidsAndClusterLabels()
+#tenTimesKMeansCluster()
 
