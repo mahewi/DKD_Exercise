@@ -115,11 +115,17 @@ def calculateOptimalRegParam(xTrain, yTrain, xTest, yTest, doPlot):
         trainErrors.append(enet.score(xTrain, yTrain))
         testErrors.append(enet.score(xTest, yTest))
     
+    maxTrainErrorIndex = np.argmax(trainErrors)
     maxTestErrorIndex = np.argmax(testErrors)
-    optimalRegParam = alphas[maxTestErrorIndex]
+    optimalTrainRegParam = alphas[maxTrainErrorIndex]
+    optimalTestRegParam = alphas[maxTestErrorIndex]
     print
-    print("Optimal regularization parameter: %s" % optimalRegParam)
-
+    print("Optimal train regularization parameter: %s" % optimalTrainRegParam)
+    print ("Error == %s" % trainErrors[maxTrainErrorIndex])
+    print("Optimal test regularization parameter: %s" % optimalTestRegParam)
+    print ("Error == %s" % testErrors[maxTestErrorIndex])
+    
+    
     if (doPlot):
         plotErrorsWithOptRegParam(alphas, trainErrors, testErrors)
         
