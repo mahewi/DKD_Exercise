@@ -1,12 +1,14 @@
 import numpy as np
 import pandas as pd
 import os
+import scipy.spatial.distance as ssd
 from matplotlib import pyplot as pp
 from sklearn.cross_validation import train_test_split
 from sklearn.linear_model import LogisticRegression
 from patsy.highlevel import dmatrices
 from sklearn.cross_validation import StratifiedShuffleSplit as SSS
 from sklearn import linear_model
+import plotData
     
 if __name__ == '__main__':
     pass
@@ -163,4 +165,87 @@ def generateLabels():
     return str(labels[0]) + '~' + "+".join(labels[1:])
 
       
-linearRegression(x) # Task 1a)
+#linearRegression(x) # Task 1a)
+
+
+
+def knn(k, dtrain, dtest, dtr_label, dist=1):
+    """ k-nearest neighbors """
+
+    pred_class = []
+    for ii, di in enumerate(dtest):
+        distances = []
+        for ij, dj in enumerate(dtrain):
+            distances.append((calc_dist(di,dj), ij))
+        k_nn = sorted(distances)[:k]
+        pred_class.append(classify(k_nn, dtr_label))
+
+    return pred_class
+
+def calc_dist(di,dj):
+    return ssd.euclidean(di,dj)
+
+
+def classify(k_nn, dtr_label):
+    """ Classify instance data test into class"""
+    
+    dlabel = []
+    for dist, idx in k_nn:
+        dlabel.append(dtr_label[idx])
+
+    return np.argmax(np.bincount(dlabel))
+
+def evaluate(result):
+    """ Evaluate the prediction class"""
+
+    eval_result = np.zeros(2,int)
+    for x in result:
+        if x == 0:
+            eval_result[0] += 1
+        else:
+            eval_result[1] += 1
+    return eval_result
+
+def NNC():
+    """ k-nearest neighbors classifier """
+
+    data_tests = [1,2] 
+    xTrain, xTest, yTrain, yTest = train_test_split(x, y, test_size=0.5)
+    calcTenFoldError()
+    
+    
+def calcTenFoldError():
+    
+    stratifiedShuffleSplit = SSS(y,10,test_size=0.25,random_state=np.random)
+    for trainIdx, testIdx in stratifiedShuffleSplit:
+        xTrain, xTest = x[trainIdx],x[testIdx]
+        yTrain, yTest = y[trainIdx],y[testIdx]
+        #Train errors
+        print 'Train errors'
+        calcNNError(xTrain, xTest, yTrain, len(xTrain))
+        #Test errors
+        print 'Test errors'
+        calcNNError(xTest, xTrain, yTest, len(xTest))
+     
+def calcNNError(xTrain,xTest,yTrain,count):
+    correct = 0
+    false = 0
+    for i in range(1,count):
+        results = []
+        pred_class = knn(i, xTrain, xTest, yTrain, 1)
+        eval_result = evaluate(pred_class-yTrain[i])
+        results.append(eval_result[0])
+        results.append(eval_result[1])
+
+        correct += results[0]
+        false += results[1]
+        results = []
+    print false
+    print correct
+    print str(float(false)/float(correct+false) * 100.0) + '%'
+    
+    
+        
+    
+NNC()
+
