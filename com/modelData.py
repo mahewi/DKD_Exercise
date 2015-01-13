@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import scipy.spatial.distance as ssd
 import collections
+import time
 from random import randint
 from matplotlib import pyplot as pp
 from sklearn.cluster import KMeans
@@ -11,11 +12,13 @@ from sklearn.linear_model import LogisticRegression
 from patsy.highlevel import dmatrices
 from sklearn.cross_validation import StratifiedShuffleSplit as SSS
 from sklearn import linear_model
-from sklearn.cluster.k_means_ import k_means
     
+
 if __name__ == '__main__':
     pass
 
+
+startTime = int(round(time.time() * 1000))
 # Set pointer to correct destination
 basepath = os.path.dirname(__file__)
 filepath = os.path.abspath(os.path.join(basepath, "..", "wine.data"))
@@ -170,43 +173,27 @@ def createBoxPlot(trainErrCount, testErrCount):
     pp.show()
 
 
-def generateLabels():
-    return str(labels[0]) + '~' + "+".join(labels[1:])
-
-      
-#linearRegression(x) # Task 1a)
-
-
-
 def knn(k, dtrain, dtest, dtr_label, dist=1):
-    """ k-nearest neighbors """
-
     pred_class = []
-    for ii, di in enumerate(dtest):
+    for _, di in enumerate(dtest):
         distances = []
         for ij, dj in enumerate(dtrain):
-            distances.append((calc_dist(di,dj), ij))
+            distances.append((ssd.euclidean(di,dj), ij))
         k_nn = sorted(distances)[:k]
         pred_class.append(classify(k_nn, dtr_label))
 
     return pred_class
 
-def calc_dist(di,dj):
-    return ssd.euclidean(di,dj)
 
-
-def classify(k_nn, dtr_label):
-    """ Classify instance data test into class"""
-    
+def classify(k_nn, dtr_label):    
     dlabel = []
-    for dist, idx in k_nn:
+    for _, idx in k_nn:
         dlabel.append(dtr_label[idx])
 
     return np.argmax(np.bincount(dlabel))
 
-def evaluate(result):
-    """ Evaluate the prediction class"""
 
+def evaluate(result):
     eval_result = np.zeros(2,int)
     for x in result:
         if x == 0:
@@ -215,38 +202,40 @@ def evaluate(result):
             eval_result[1] += 1
     return eval_result
 
-def NNC():
-    """ k-nearest neighbors classifier """
 
+def NNC():
     xTrain, xTest, yTrain, yTest = train_test_split(x, y, test_size=0.5)
     foo(yTest)
-    #calcTenFoldError()
-    #calcNNError(xTrain,xTest,yTrain,len(xTrain))
+    calcTenFoldError(xTrain, xTest, yTrain)
+    calcNNError(xTrain,xTest,yTrain,len(xTrain))
     plotKTrainAndTestError(xTrain,xTest,yTrain)
 
-def foo(yTest):
-    return
 
 def plotKTrainAndTestError(xTrain,xTest,yTrain):
+    print 'Train errors'
     for k in range(1,30):
         fullresult = calcNNError(xTrain,xTest,yTrain,k+1)
     pp.plot(fullresult)
     pp.show()
 
-def calcTenFoldError(xTrain,xTest,yTrain):
-    
+
+def calcTenFoldError(xTrain,xTest,yTrain):   
     stratifiedShuffleSplit = SSS(y,10,test_size=0.25,random_state=np.random)
     for trainIdx, testIdx in stratifiedShuffleSplit:
         xTrain, xTest = x[trainIdx],x[testIdx]
         yTrain, yTest = y[trainIdx],y[testIdx]
-        #Train errors
+        
+        print
         print 'Train errors'
         calcNNError(xTrain, xTest, yTrain, len(xTrain))
-        #Test errors
+        
+        print
         print 'Test errors'
         calcNNError(xTest, xTrain, yTest, len(xTest))
+        print
         break
      
+
 def calcNNError(xTrain,xTest,yTrain,count):
     fullResult = []
     correct = 0
@@ -265,13 +254,22 @@ def calcNNError(xTrain,xTest,yTrain,count):
     print str(float(false)/float(correct+false) * 100.0) + '%'
     return fullResult
 
+
 def tenTimesKMeansCluster():
     lastCentroids = []
-    for i in range(10):
+    isFalse = True
+    for _ in range(10):
         centroids, labels = KMeansClustering(randint(1,100))
         if lastCentroids != []:
-            print compareCentroids(centroids,lastCentroids)
+            if (compareCentroids(centroids,lastCentroids) == False):
+                isFalse = False
+                break
         lastCentroids = centroids
+    if (isFalse == True):
+        print 'All centroids were same'
+    else:
+        print 'Not all centroids were the same'
+
 
 def compareCentroids(cents, lastCents):
     for k in range(len(cents)):
@@ -279,14 +277,18 @@ def compareCentroids(cents, lastCents):
             continue
         else:
             return False
+            break
+        
     return True
     
+
 def KMeansClustering(numOfInit):
     km = KMeans(n_clusters = 3, n_init = numOfInit)
     km.fit(x)
     centroids = km.cluster_centers_
     labels = km.labels_
     return centroids, labels
+
 
 def calcCentroidsAndClusterLabels():
     centroids, labels = KMeansClustering(10)
@@ -302,11 +304,24 @@ def calcCentroidsAndClusterLabels():
             classificationError += labelCounts[k]
     print '"Classification errors"'
     print classificationError
+
+
+def foo(yTest):
+    return
+
+
+def generateLabels():
+    return str(labels[0]) + '~' + "+".join(labels[1:])
+
+
+def getRunningTime():
+    print
+    print 'Total running time: ' + str((int(round(time.time() * 1000)) - startTime) / 1000) + '(s)' 
+
     
-    
-        
-    
-#NNC()
+linearRegression(x) # Task 1a)    
+NNC()
 calcCentroidsAndClusterLabels()
-#tenTimesKMeansCluster()
+tenTimesKMeansCluster()
+getRunningTime()
 
