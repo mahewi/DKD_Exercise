@@ -276,7 +276,7 @@ def calcNNError(xTrain, xTest, yTrain, count, isK):
             results = []
     
     if (isK == True):
-        print 'K = {index}: {percentage}'.format(index=str(count), percentage=str(float(false)/float(correct+false) * 100.0))
+        print 'K = {index}: {percentage}%'.format(index=str(count), percentage=str(float(false)/float(correct+false) * 100.0))
     else: 
         print str(float(false)/float(correct+false) * 100.0) + '%'
         
