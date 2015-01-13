@@ -19,6 +19,7 @@ if __name__ == '__main__':
 
 
 startTime = int(round(time.time() * 1000))
+
 # Set pointer to correct destination
 basepath = os.path.dirname(__file__)
 filepath = os.path.abspath(os.path.join(basepath, "..", "wine.data"))
@@ -32,21 +33,24 @@ labels = ['Class','Alcohol', 'Malic_acid', 'Ash', 'Alcality_of_ash', 'Magnesium'
             'Proanthocyanins', 'Color_intensity', 'Hue', 'OD280_OD315_of_diluted_wines', 'Proline']
 
 
-def linearRegression(matrix):
+def linearRegression():
     # Task 1a) 1
-    df = pd.DataFrame(matrix,columns=labels)
+    df = pd.DataFrame(x,columns=labels)
     y, X = dmatrices(generateLabels(), df, return_type='matrix')
     y = np.ravel(y)
-    errorCount =  inferErrors(X, y, X, y)
+    regressionmodel = createRegressionModel(X, y)
+    errorCount =  inferErrors(regressionmodel, X, y)
     print 'Errors in whole data: ' + str(errorCount)
     # End Task 1a) 1
     
     # Task 1a) 2
     xTrain, xTest, yTrain, yTest = train_test_split(X, y, test_size=0.25, random_state=np.random)
-    trainErrorCount = inferErrors(xTrain, yTrain, xTrain, yTrain)
+    
+    regressionModel = createRegressionModel(xTrain, yTrain)
+    trainErrorCount = inferErrors(regressionModel, xTrain, yTrain)
     print 'Errors in randomized training data (3/4): ' + str(trainErrorCount)
     
-    testErrorCount = inferErrors(xTrain, yTrain, xTest, yTest)
+    testErrorCount = inferErrors(regressionModel, xTest, yTest)
     print 'Errors in randomized test data (1/4): ' + str(testErrorCount)
     # End Task 1a) 2
     
@@ -59,22 +63,24 @@ def linearRegression(matrix):
 def tenFoldExperiment(X, y):
     stratifiedShuffleSplit = SSS(y,10,test_size=0.25,random_state=np.random)
     i = 0
-    trainMatrix = []
-    testMatrix = []
+    #trainMatrix = []
+    #testMatrix = []
     numOfTrainErrors = []
     numOfTestErrors = []
     for trainIndex, testIndex in stratifiedShuffleSplit:
         i = i+1
         xTwoTrain, xTwoTest = X[trainIndex],X[testIndex]
         yTwoTrain,yTwoTest = y[trainIndex],y[testIndex]
-        numOfErrorsTrain = inferErrors(xTwoTrain, yTwoTrain, xTwoTrain, yTwoTrain)
+        
+        regressionModel = createRegressionModel(xTwoTrain, yTwoTrain)
+        numOfErrorsTrain = inferErrors(regressionModel, xTwoTrain, yTwoTrain)
         numOfTrainErrors.append(numOfErrorsTrain)        
         
-        numOfErrorsTest = inferErrors(xTwoTrain, yTwoTrain, xTwoTest, yTwoTest)
+        numOfErrorsTest = inferErrors(regressionModel, xTwoTest, yTwoTest)
         numOfTestErrors.append(numOfErrorsTest)
         
         # Calculating OPT reg param for each train and test data. (remove first comment sign to test)
-        trainErrors, testErrors = calculateOptimalRegParam(xTwoTrain, yTwoTrain, xTwoTest, yTwoTest, False)
+        '''trainErrors, testErrors = calculateOptimalRegParam(xTwoTrain, yTwoTrain, xTwoTest, yTwoTest, False)
         trainMatrix.append(trainErrors)
         testMatrix.append(testErrors) 
     
@@ -83,13 +89,13 @@ def tenFoldExperiment(X, y):
     testMatrix = np.matrix(testMatrix)
     pp.plot(trainMatrix)
     pp.plot(testMatrix)
-    pp.show()
+    pp.show()'''
        
     numOfTrainErrors = np.array(numOfTrainErrors)
     numOfTestErrors = np.array(numOfTestErrors)
     
     print
-    print 'Errors in training data sets (10-fold)'
+    print 'Errors in training data sets (10-fold):'
     for i in range(0, len(numOfTrainErrors)):
         print 'Set ' + str(i + 1) + ': ' + str(numOfTrainErrors[i])
     
@@ -98,7 +104,7 @@ def tenFoldExperiment(X, y):
     print 'Mean of training data: ' + str(numOfTrainErrors.mean())   
     
     print
-    print 'Errors in test data sets (10-fold)'
+    print 'Errors in test data sets (10-fold):'
     for i in range(0, len(numOfTestErrors)):
         print 'Set ' + str(i + 1) + ': ' + str(numOfTestErrors[i])
          
@@ -130,8 +136,7 @@ def calculateOptimalRegParam(xTrain, yTrain, xTest, yTest, doPlot):
     print ("Error == %s" % trainErrors[maxTrainErrorIndex])
     print("Optimal test regularization parameter: %s" % optimalTestRegParam)
     print ("Error == %s" % testErrors[maxTestErrorIndex])
-    
-    
+      
     if (doPlot):
         plotErrorsWithOptRegParam(alphas, trainErrors, testErrors)
         
@@ -154,12 +159,15 @@ def calculateErrorCount(clazz,predictedValues):
     return len(arr)
  
 
-
-def inferErrors(xTrain, yTrain, xData, yData):
-    regressionModel = LogisticRegression()
-    regressionModel = regressionModel.fit(xTrain,yTrain);
+def inferErrors(regressionModel, xData, yData):
     predictedY = regressionModel.predict(xData)
     return calculateErrorCount(yData, predictedY)
+
+
+def createRegressionModel(xTrain, yTrain):
+    regressionModel = LogisticRegression()
+    regressionModel = regressionModel.fit(xTrain,yTrain);
+    return regressionModel
 
 
 # Task 1a) 4
@@ -173,7 +181,7 @@ def createBoxPlot(trainErrCount, testErrCount):
     pp.show()
 
 
-def knn(k, dtrain, dtest, dtr_label, dist=1):
+def knn(k, dtrain, dtest, dtr_label):
     pred_class = []
     for _, di in enumerate(dtest):
         distances = []
@@ -204,17 +212,20 @@ def evaluate(result):
 
 
 def NNC():
+    printNNCHeader()
     xTrain, xTest, yTrain, yTest = train_test_split(x, y, test_size=0.5)
     foo(yTest)
+    print 'Train error percent from whole dataset:'
+    calcNNError(xTrain,xTest,yTrain,len(xTrain), False)
     calcTenFoldError(xTrain, xTest, yTrain)
-    calcNNError(xTrain,xTest,yTrain,len(xTrain))
     plotKTrainAndTestError(xTrain,xTest,yTrain)
+    print
 
 
 def plotKTrainAndTestError(xTrain,xTest,yTrain):
-    print 'Train errors'
-    for k in range(1,30):
-        fullresult = calcNNError(xTrain,xTest,yTrain,k+1)
+    print 'Train errors (k = 1...30):'
+    for k in range(1,31):
+        fullresult = calcNNError(xTrain, xTest, yTrain, k, True)
     pp.plot(fullresult)
     pp.show()
 
@@ -226,32 +237,49 @@ def calcTenFoldError(xTrain,xTest,yTrain):
         yTrain, yTest = y[trainIdx],y[testIdx]
         
         print
-        print 'Train errors'
-        calcNNError(xTrain, xTest, yTrain, len(xTrain))
+        print 'Train errors percentage (ten fold):'
+        calcNNError(xTrain, xTest, yTrain, len(xTrain), False)
         
         print
-        print 'Test errors'
-        calcNNError(xTest, xTrain, yTest, len(xTest))
+        print 'Test errors percentage (ten fold):'
+        calcNNError(xTest, xTrain, yTest, len(xTest), False)
         print
         break
      
 
-def calcNNError(xTrain,xTest,yTrain,count):
+def calcNNError(xTrain, xTest, yTrain, count, isK):
     fullResult = []
     correct = 0
     false = 0
     results = []
-    for i in range(1,count):
-        pred_class = knn(i, xTrain, xTest, yTrain, 1)
-        eval_result = evaluate(pred_class-yTrain[i])
+    
+    if (count == 1):
+        pred_class = knn(count, xTrain, xTest, yTrain)
+        eval_result = evaluate(pred_class-yTrain[count])
         results.append(eval_result[0])
         results.append(eval_result[1])
 
         correct += results[0]
         false += results[1]
         fullResult.append(results)
-        results = [] 
-    print str(float(false)/float(correct+false) * 100.0) + '%'
+        results = []   
+    else:    
+        for i in range(1, count):
+            pred_class = knn(i, xTrain, xTest, yTrain)
+            eval_result = evaluate(pred_class-yTrain[i])
+            results.append(eval_result[0])
+            results.append(eval_result[1])
+    
+            correct += results[0]
+            false += results[1]
+            fullResult.append(results)
+            results = []
+    
+    if (isK == True):
+        print 'K = {index}: {percentage}'.format(index=str(count), percentage=str(float(false)/float(correct+false) * 100.0))
+    else: 
+        print str(float(false)/float(correct+false) * 100.0) + '%'
+        
     return fullResult
 
 
@@ -266,9 +294,9 @@ def tenTimesKMeansCluster():
                 break
         lastCentroids = centroids
     if (isFalse == True):
-        print 'All centroids were same'
+        print 'Result: All centroids were same'
     else:
-        print 'Not all centroids were the same'
+        print 'Result: Not all centroids were the same'
 
 
 def compareCentroids(cents, lastCents):
@@ -292,7 +320,7 @@ def KMeansClustering(numOfInit):
 
 def calcCentroidsAndClusterLabels():
     centroids, labels = KMeansClustering(10)
-    print 'Centroids'
+    print 'Centroids:'
     print centroids
     labelCounts = [0,0,0]
     for i in range(len(labels)):
@@ -302,8 +330,14 @@ def calcCentroidsAndClusterLabels():
     for k in range(len(labelCounts)):
         if k != clusterLabelIndex:
             classificationError += labelCounts[k]
-    print '"Classification errors"'
-    print classificationError
+    print
+    print '"Classification errors": %s' % str(classificationError)
+    print
+
+
+def KMeansMain():
+    calcCentroidsAndClusterLabels()
+    tenTimesKMeansCluster()
 
 
 def foo(yTest):
@@ -315,13 +349,33 @@ def generateLabels():
 
 
 def getRunningTime():
+    print '------------------------------------------------'
     print
     print 'Total running time: ' + str((int(round(time.time() * 1000)) - startTime) / 1000) + '(s)' 
 
-    
-linearRegression(x) # Task 1a)    
-NNC()
-calcCentroidsAndClusterLabels()
-tenTimesKMeansCluster()
-getRunningTime()
 
+def printLMAndROHeader():
+    print '------------------------------------------------'
+    print
+    print '# Assignment 1: Linear modeling and optimization parameter'
+    print
+
+
+def printNNCHeader():
+    print '------------------------------------------------'
+    print
+    print '# Assignment 2: Nearest neighbor classification'
+    print
+
+
+def printKMeanHeader():
+    print '------------------------------------------------'
+    print
+    print '# Assignment 3: KMean clustering'
+    print
+
+   
+linearRegression()    
+NNC()
+KMeansMain()
+getRunningTime()
