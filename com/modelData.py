@@ -34,16 +34,14 @@ labels = ['Class','Alcohol', 'Malic_acid', 'Ash', 'Alcality_of_ash', 'Magnesium'
 
 
 def linearRegression():
-    # Task 1a) 1
+    printLMAndROHeader()
     df = pd.DataFrame(x,columns=labels)
     y, X = dmatrices(generateLabels(), df, return_type='matrix')
     y = np.ravel(y)
     regressionmodel = createRegressionModel(X, y)
     errorCount =  inferErrors(regressionmodel, X, y)
     print 'Errors in whole data: ' + str(errorCount)
-    # End Task 1a) 1
     
-    # Task 1a) 2
     xTrain, xTest, yTrain, yTest = train_test_split(X, y, test_size=0.25, random_state=np.random)
     
     regressionModel = createRegressionModel(xTrain, yTrain)
@@ -52,14 +50,12 @@ def linearRegression():
     
     testErrorCount = inferErrors(regressionModel, xTest, yTest)
     print 'Errors in randomized test data (1/4): ' + str(testErrorCount)
-    # End Task 1a) 2
     
     numOfTrainErrors, numOfTestErrors = tenFoldExperiment(X, y)
     createBoxPlot(numOfTrainErrors, numOfTestErrors)
     calculateOptimalRegParam(xTrain, yTrain, xTest, yTest, True)
 
 
-# Task 1a) 3
 def tenFoldExperiment(X, y):
     stratifiedShuffleSplit = SSS(y,10,test_size=0.25,random_state=np.random)
     i = 0
@@ -84,7 +80,6 @@ def tenFoldExperiment(X, y):
         trainMatrix.append(trainErrors)
         testMatrix.append(testErrors) 
     
-    # 1b) 1
     trainMatrix = np.matrix(trainMatrix)
     testMatrix = np.matrix(testMatrix)
     pp.plot(trainMatrix)
@@ -115,7 +110,6 @@ def tenFoldExperiment(X, y):
     return numOfTrainErrors, numOfTestErrors
 
 
-# Task 1b)
 def calculateOptimalRegParam(xTrain, yTrain, xTest, yTest, doPlot):
     alphas = np.logspace(-5, 5.0, 178)
     enet = linear_model.ElasticNet(l1_ratio=0.5)
@@ -170,7 +164,6 @@ def createRegressionModel(xTrain, yTrain):
     return regressionModel
 
 
-# Task 1a) 4
 def createBoxPlot(trainErrCount, testErrCount):
     data = [trainErrCount, testErrCount]
     colors = ['cyan','pink']
@@ -189,7 +182,7 @@ def knn(k, dtrain, dtest, dtr_label):
             distances.append((ssd.euclidean(di,dj), ij))
         k_nn = sorted(distances)[:k]
         pred_class.append(classify(k_nn, dtr_label))
-
+           
     return pred_class
 
 
@@ -255,7 +248,7 @@ def calcNNError(xTrain, xTest, yTrain, count, isK):
     
     if (count == 1):
         pred_class = knn(count, xTrain, xTest, yTrain)
-        eval_result = evaluate(pred_class-yTrain[count])
+        eval_result = evaluate(pred_class - yTrain[count])
         results.append(eval_result[0])
         results.append(eval_result[1])
 
@@ -266,7 +259,7 @@ def calcNNError(xTrain, xTest, yTrain, count, isK):
     else:    
         for i in range(1, count):
             pred_class = knn(i, xTrain, xTest, yTrain)
-            eval_result = evaluate(pred_class-yTrain[i])
+            eval_result = evaluate(pred_class - yTrain[i])
             results.append(eval_result[0])
             results.append(eval_result[1])
     
@@ -276,9 +269,9 @@ def calcNNError(xTrain, xTest, yTrain, count, isK):
             results = []
     
     if (isK == True):
-        print 'K = {index}: {percentage}%'.format(index=str(count), percentage=str(float(false)/float(correct+false) * 100.0))
+        print 'K = {index}: {percentage} %'.format(index=str(count), percentage=str(float(false)/float(correct+false) * 100.0))
     else: 
-        print str(float(false)/float(correct+false) * 100.0) + '%'
+        print str(float(false)/float(correct+false) * 100.0) + ' %'
         
     return fullResult
 
@@ -336,6 +329,7 @@ def calcCentroidsAndClusterLabels():
 
 
 def KMeansMain():
+    printKMeanHeader()
     calcCentroidsAndClusterLabels()
     tenTimesKMeansCluster()
 
@@ -374,7 +368,18 @@ def printKMeanHeader():
     print '# Assignment 3: KMean clustering'
     print
 
-   
+
+def printHeader():
+    print '\t================================='
+    print '\t||                             ||'
+    print '\t||        Excercise 2          ||'
+    print '\t||                             ||'
+    print '\t||   Jarno Vuorenmaa, 503618   ||'
+    print '\t||   Marco Willgren, 502606    ||'
+    print '\t================================='                           
+
+
+printHeader()  
 linearRegression()    
 NNC()
 KMeansMain()
