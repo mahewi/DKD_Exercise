@@ -4,6 +4,7 @@ import os
 import scipy.spatial.distance as ssd
 import collections
 import time
+import matplotlib.patches as mpatches
 from random import randint
 from matplotlib import pyplot as pp
 from sklearn.cluster import KMeans
@@ -127,9 +128,9 @@ def calculateOptimalRegParam(xTrain, yTrain, xTest, yTest, doPlot):
     optimalTestRegParam = alphas[maxTestErrorIndex]
     print
     print("Optimal train regularization parameter: %s" % optimalTrainRegParam)
-    print ("Error == %s" % trainErrors[maxTrainErrorIndex])
+    print ("Error = %s" % trainErrors[maxTrainErrorIndex])
     print("Optimal test regularization parameter: %s" % optimalTestRegParam)
-    print ("Error == %s" % testErrors[maxTestErrorIndex])
+    print ("Error = %s" % testErrors[maxTestErrorIndex])
       
     if (doPlot):
         plotErrorsWithOptRegParam(alphas, trainErrors, testErrors)
@@ -219,7 +220,12 @@ def plotKTrainAndTestError(xTrain,xTest,yTrain):
     print 'Train errors (k = 1...30):'
     for k in range(1,31):
         fullresult = calcNNError(xTrain, xTest, yTrain, k, True)
-    pp.plot(fullresult)
+        pp.plot(fullresult)
+    error = mpatches.Patch(color='turquoise', label='Errors')
+    correct = mpatches.Patch(color='red', label='Correct')
+    pp.legend(handles=[error, correct])
+    pp.ylabel('Percentage')
+    pp.xlabel('Value of K')
     pp.show()
 
 
@@ -315,10 +321,12 @@ def calcCentroidsAndClusterLabels():
     centroids, labels = KMeansClustering(10)
     print 'Centroids:'
     print centroids
+    print
     labelCounts = [0,0,0]
     for i in range(len(labels)):
         labelCounts[labels[i]] += 1
     clusterLabelIndex = np.argmax(labelCounts)
+    print 'Cluster label index: %s' % str(labels[clusterLabelIndex + 1])
     classificationError = 0
     for k in range(len(labelCounts)):
         if k != clusterLabelIndex:
